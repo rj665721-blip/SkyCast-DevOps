@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+.venv/
+
+# Secret files
+.env
+.env.*
+!.env.example
+
+# Testing cache
+.pytest_cache/
+.coverage
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
