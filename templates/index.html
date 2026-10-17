@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SkyCast | Weather Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div>
+            <h1>🌤️ SkyCast</h1>
+            <p>Your Personal Weather Dashboard</p>
+        </div>
+
+        <button id="themeToggle" type="button">
+            🌙 Dark Mode
+        </button>
+    </header>
+
+    <section class="search-section">
+        <h2>Check Weather</h2>
+
+        <form id="weatherForm">
+            <input
+                type="text"
+                id="cityInput"
+                placeholder="Enter city name..."
+                aria-label="City name"
+                required
+            >
+
+            <button type="submit">
+                Search
+            </button>
+        </form>
+
+        <p id="errorMessage" role="alert"></p>
+    </section>
+
+    <section id="weatherResult" class="weather-card" hidden>
+
+        <div class="weather-header">
+            <div>
+                <h2 id="cityName"></h2>
+                <p id="weatherCondition"></p>
+                <p id="lastUpdated"></p>
+            </div>
+
+            <img id="weatherIcon" alt="Weather icon">
+        </div>
+
+        <div class="temperature">
+            <span id="temperature"></span>°C
+        </div>
+
+        <div class="weather-grid">
+
+            <div class="detail-card">
+                <h3>Feels Like</h3>
+                <p id="feelsLike"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Min Temperature</h3>
+                <p id="minTemp"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Max Temperature</h3>
+                <p id="maxTemp"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Humidity</h3>
+                <p id="humidity"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Wind Speed</h3>
+                <p id="windSpeed"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Pressure</h3>
+                <p id="pressure"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Sunrise</h3>
+                <p id="sunrise"></p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Sunset</h3>
+                <p id="sunset"></p>
+            </div>
+
+        </div>
+
+        <div class="advice">
+            <h3>💡 Weather Advice</h3>
+            <p id="weatherAdvice"></p>
+        </div>
+
+    </section>
+
+    <section class="history-section">
+        <h2>🕒 Recent Searches</h2>
+        <div id="searchHistory"></div>
+    </section>
+
+    <footer>
+        <p>SkyCast | DevOps Mini Project</p>
+        <p>Built using Flask, GitHub Actions and Render</p>
+    </footer>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
