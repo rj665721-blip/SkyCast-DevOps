@@ -1,191 +1,127 @@
-const weatherForm = document.getElementById("weatherForm");
-const cityInput = document.getElementById("cityInput");
-const weatherResult = document.getElementById("weatherResult");
-const errorMessage = document.getElementById("errorMessage");
-const themeToggle = document.getElementById("themeToggle");
-const searchHistory = document.getElementById("searchHistory");
 
-const HISTORY_KEY = "skycast_recent_cities";
-const THEME_KEY = "skycast_theme";
+const $ = (id) => document.getElementById(id);
 
-let recentCities = [];
+const HISTORY_KEY = 'skycast-history';
+const THEME_KEY = 'skycast-theme';
+
+// Load saved theme
+if (localStorage.getItem(THEME_KEY) === 'dark') {
+    document.body.classList.add('dark');
+}
+
+// Dark mode toggle
+$('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+
+    const isDark = document.body.classList.contains('dark');
+
+    localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+    $('themeToggle').textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+});
+
+// Load recent searches safely
+let recent = [];
 
 try {
-    recentCities = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-
-    if (!Array.isArray(recentCities)) {
-        recentCities = [];
-    }
+    recent = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    if (!Array.isArray(recent)) recent = [];
 } catch {
-    recentCities = [];
+    recent = [];
 }
 
-// Display weather information
-function displayWeather(data) {
+function showHistory() {
+    const history = $('searchHistory');
+    history.replaceChildren();
 
-    document.getElementById("cityName").textContent =
-        `${data.city}, ${data.country}`;
+    recent.forEach((city) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = city;
 
-    document.getElementById("weatherCondition").textContent =
-        data.condition;
+        button.addEventListener('click', () => search(city));
 
-    document.getElementById("lastUpdated").textContent =
-        `Last Updated: ${data.updated}`;
-
-    document.getElementById("temperature").textContent =
-        Number(data.temperature).toFixed(1);
-
-    document.getElementById("feelsLike").textContent =
-        `${data.feels_like} °C`;
-
-    document.getElementById("minTemp").textContent =
-        `${data.temp_min} °C`;
-
-    document.getElementById("maxTemp").textContent =
-        `${data.temp_max} °C`;
-
-    document.getElementById("humidity").textContent =
-        `${data.humidity}%`;
-
-    document.getElementById("windSpeed").textContent =
-        `${data.wind_speed} m/s`;
-
-    document.getElementById("pressure").textContent =
-        `${data.pressure} hPa`;
-
-    document.getElementById("sunrise").textContent =
-        data.sunrise;
-
-    document.getElementById("sunset").textContent =
-        data.sunset;
-
-    document.getElementById("weatherAdvice").textContent =
-        data.advice;
-
-    const icon = document.getElementById("weatherIcon");
-
-    if (/^\d{2}[dn]$/.test(data.icon)) {
-        icon.src =
-            `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
-        icon.hidden = false;
-    } else {
-        icon.hidden = true;
-    }
-
-    icon.alt = data.condition || "Weather condition";
-
-    weatherResult.hidden = false;
+        history.appendChild(button);
+    });
 }
 
-// Search weather using Flask API
-async function searchWeather(city) {
+// Search for weather
+async function search(city) {
+    const message = $('errorMessage');
+    const result = $('weatherResult');
 
-    const cleanCity = city.trim();
-
-    if (!cleanCity) {
-        errorMessage.textContent = "Please enter a city name.";
-        return;
-    }
-
-    errorMessage.textContent = "";
-    weatherResult.hidden = true;
+    message.textContent = 'Loading weather...';
+    result.hidden = true;
 
     try {
         const response = await fetch(
-            `/weather?city=${encodeURIComponent(cleanCity)}`
+            '/weather?city=' + encodeURIComponent(city)
         );
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(
-                data.error || "Unable to fetch weather."
-            );
+            throw new Error(data.error || 'Unable to load weather.');
         }
 
-        displayWeather(data);
-        saveSearch(data.city);
+        // Update weather details using your HTML IDs
+        $('cityName').textContent =
+            data.city + (data.country ? ', ' + data.country : '');
+
+        $('temperature').textContent = data.temperature;
+        $('weatherCondition').textContent = data.condition;
+        $('lastUpdated').textContent = 'Updated: ' + data.updated;
+
+        $('feelsLike').textContent = data.feels_like + ' °C';
+        $('minTemp').textContent = data.temp_min + ' °C';
+        $('maxTemp').textContent = data.temp_max + ' °C';
+        $('humidity').textContent = data.humidity + '%';
+        $('windSpeed').textContent = data.wind_speed + ' m/s';
+        $('pressure').textContent = data.pressure + ' hPa';
+
+        $('sunrise').textContent = data.sunrise;
+        $('sunset').textContent = data.sunset;
+        $('weatherAdvice').textContent = data.advice;
+
+        $('weatherIcon').src =
+            'https://openweathermap.org/img/wn/' + data.icon + '@2x.png';
+
+        $('weatherIcon').alt = data.condition || 'Weather icon';
+
+        // Show results
+        result.hidden = false;
+        message.textContent = '';
+
+        // Save only the latest five unique cities
+        recent = [
+            data.city,
+            ...recent.filter(
+                item => item.toLowerCase() !== data.city.toLowerCase()
+            )
+        ].slice(0, 5);
+
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(recent));
+        showHistory();
 
     } catch (error) {
-        errorMessage.textContent =
-            error.message || "Something went wrong.";
+        message.textContent = error.message;
     }
 }
 
-// Save recently searched cities
-function saveSearch(city) {
-
-    recentCities = recentCities.filter(
-        item => item.toLowerCase() !== city.toLowerCase()
-    );
-
-    recentCities.unshift(city);
-
-    recentCities = recentCities.slice(0, 5);
-
-    localStorage.setItem(
-        HISTORY_KEY,
-        JSON.stringify(recentCities)
-    );
-
-    displayHistory();
-}
-
-// Display search history
-function displayHistory() {
-
-    searchHistory.innerHTML = "";
-
-    recentCities.forEach(city => {
-
-        const button = document.createElement("button");
-
-        button.type = "button";
-        button.textContent = city;
-
-        button.addEventListener("click", () => {
-            cityInput.value = city;
-            searchWeather(city);
-        });
-
-        searchHistory.appendChild(button);
-    });
-}
-
-// Search form event
-weatherForm.addEventListener("submit", event => {
-
+// Handle the search form
+$('weatherForm').addEventListener('submit', (event) => {
     event.preventDefault();
 
-    searchWeather(cityInput.value);
+    const city = $('cityInput').value.trim();
+
+    if (city) {
+        search(city);
+    }
 });
 
-// Dark mode
-function updateThemeButton() {
-
-    themeToggle.textContent =
-        document.body.classList.contains("dark")
-            ? "☀️ Light Mode"
-            : "🌙 Dark Mode";
+// Restore saved theme button label
+if (document.body.classList.contains('dark')) {
+    $('themeToggle').textContent = '☀️ Light Mode';
 }
 
-themeToggle.addEventListener("click", () => {
-
-    document.body.classList.toggle("dark");
-
-    const theme = document.body.classList.contains("dark")
-        ? "dark"
-        : "light";
-
-    localStorage.setItem(THEME_KEY, theme);
-
-    updateThemeButton();
-});
-
-// Load saved theme
-if (localStorage.getItem(THEME_KEY) === "dark") {
-    document.body.classList.add("dark");
-}
-
-updateThemeButton();
-displayHistory();
+// Display saved recent searches
+showHistory();
