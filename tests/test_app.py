@@ -114,3 +114,19 @@ def test_api_network_failure(client, monkeypatch):
     monkeypatch.setattr(weather.requests, "get", fail)
 
     assert client.get("/weather?city=Pune").status_code == 502
+
+def test_thunderstorm_advice():
+    assert "indoors" in weather.weather_advice(27, "Thunderstorm")
+
+
+def test_hot_weather_advice():
+    assert "hydrated" in weather.weather_advice(38, "Clear")
+
+
+def test_cold_weather_advice():
+    assert "warm" in weather.weather_advice(9, "Clouds")
+
+
+def test_long_city(client):
+    response = client.get("/weather?city=" + "a" * 101)
+    assert response.status_code == 400

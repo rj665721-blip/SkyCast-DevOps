@@ -18,7 +18,10 @@ class WeatherError(Exception):
 def weather_advice(temp, condition):
     condition = condition.lower()
 
-    if "rain" in condition or "drizzle" in condition or "thunderstorm" in condition:
+    if "thunderstorm" in condition:
+        return "Stay indoors during thunderstorms."
+
+    if "rain" in condition or "drizzle" in condition:
         return "Carry an umbrella."
 
     if temp >= 35:
