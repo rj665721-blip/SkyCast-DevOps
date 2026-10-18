@@ -16,6 +16,9 @@ def weather_route():
     if not city:
         return jsonify({"error": "Please enter a city name."}), 400
 
+    if len(city) > 100:
+         return jsonify({"error": "City name is too long."}), 400
+
     try:
         return jsonify(get_weather(city))
 
