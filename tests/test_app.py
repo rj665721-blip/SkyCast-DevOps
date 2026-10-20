@@ -130,3 +130,16 @@ def test_cold_weather_advice():
 def test_long_city(client):
     response = client.get("/weather?city=" + "a" * 101)
     assert response.status_code == 400
+
+def test_city_length_boundary(client, monkeypatch, sample_data):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "fake-key")
+
+    monkeypatch.setattr(
+        weather.requests,
+        "get",
+        lambda *a, **kw: FakeResponse(sample_data)
+    )
+
+    response = client.get("/weather?city=" + "a" * 100)
+
+    assert response.status_code == 200    
