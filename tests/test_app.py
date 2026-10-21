@@ -130,6 +130,7 @@ def test_cold_weather_advice():
 def test_long_city(client):
     response = client.get("/weather?city=" + "a" * 101)
     assert response.status_code == 400
+    assert response.get_json()["error"] == "City name is too long."
 
 def test_city_length_boundary(client, monkeypatch, sample_data):
     monkeypatch.setenv("OPENWEATHER_API_KEY", "fake-key")
