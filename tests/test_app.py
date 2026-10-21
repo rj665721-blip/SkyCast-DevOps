@@ -54,8 +54,9 @@ def test_homepage(client):
 
 def test_empty_city(client):
     response = client.get("/weather")
+
     assert response.status_code == 400
-    assert "error" in response.get_json()
+    assert response.get_json()["error"] == "Please enter a city name."
 
 
 def test_valid_city(client, monkeypatch, sample_data):
